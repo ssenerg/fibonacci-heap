@@ -18,21 +18,12 @@ func NewHeap[I comparable, K cmp.Ordered]() *Heap[I, K] {
 	return &Heap[I, K]{}
 }
 
-// FindMin returns the minimum node from the heap, it returns an error if the heap is 
-// empty
-func (h *Heap[I, K]) FindMin() (heaps.Node[I, K], error) {
-	if h.size == 0 {
-		return nil, errors.New("can't find min from an empty heap")
-	}
-	return h.root, nil
-}
-
 // Size returns the number of nodes in the heap
 func (h *Heap[I, K]) Size() int {
 	return h.size
 }
 
-// Insert inserts a new node into the heap, it returns an error if the node is not of 
+// Insert inserts a new node into the heap, it returns an error if the node is not of
 // the fibonacci heap node
 func (h *Heap[I, K]) Insert(node heaps.Node[I, K]) error {
 	n, ok := node.(*Node[I, K])
@@ -76,7 +67,16 @@ func (h *Heap[I, K]) Meld(other heaps.Heap[I, K]) error {
 	return nil
 }
 
-// PopMin removes and returns the minimum node from the heap, it returns the minimum 
+// FindMin returns the minimum node from the heap, it returns an error if the heap is
+// empty
+func (h *Heap[I, K]) FindMin() (heaps.Node[I, K], error) {
+	if h.size == 0 {
+		return nil, errors.New("can't find min from an empty heap")
+	}
+	return h.root, nil
+}
+
+// PopMin removes and returns the minimum node from the heap, it returns the minimum
 // node and an error if the heap is empty
 func (h *Heap[I, K]) PopMin() (heaps.Node[I, K], error) {
 
@@ -138,6 +138,26 @@ func (h *Heap[I, K]) DecreaseKey(node heaps.Node[I, K], key K) error {
 		h.root = n
 	}
 	return nil
+}
+
+// addToRoot adds the given node to the root
+func (h *Heap[I, K]) addToRoot(node *Node[I, K]) {
+	if h.root == nil {
+		h.root = node
+		node.left = node
+		node.right = node
+		return
+	}
+	node.left = h.root.left
+	node.right = h.root
+	h.root.left.right = node
+	h.root.left = node
+
+	// update the root if the given node has smaller key, because the root should have
+	// the minimum key in this implementation
+	if cmp.Compare(node.key, h.root.key) < 0 {
+		h.root = node
+	}
 }
 
 // removeFromRoot removes the given node from the root
@@ -202,25 +222,6 @@ func (h *Heap[I, K]) consolidate() {
 
 }
 
-// addToRoot adds the given node to the root
-func (h *Heap[I, K]) addToRoot(node *Node[I, K]) {
-	if h.root == nil {
-		h.root = node
-		node.left = node
-		node.right = node
-		return
-	}
-	node.left = h.root.left
-	node.right = h.root
-	h.root.left.right = node
-	h.root.left = node
-
-	// update the root if the given node has smaller key, because the root should have 
-	// the minimum key in this implementation
-	if cmp.Compare(node.key, h.root.key) < 0 {
-		h.root = node
-	}
-}
 // cut cuts the given node from the given parent node
 func (h *Heap[I, K]) cut(parent, node *Node[I, K]) {
 	// remove node from parent's children

@@ -2,6 +2,7 @@ package heaps
 
 import "cmp"
 
+// Heap represents a heap
 type Heap[I comparable, K cmp.Ordered] interface {
 	Size() int
 	Insert(Node[I, K]) error
@@ -11,6 +12,7 @@ type Heap[I comparable, K cmp.Ordered] interface {
 	DecreaseKey(Node[I, K], K) error
 }
 
+// Node represents a node in a heap
 type Node[I comparable, K cmp.Ordered] interface {
 	GetKey() K
 	GetID() I
